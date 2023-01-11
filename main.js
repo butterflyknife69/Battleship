@@ -1,7 +1,11 @@
+//Помножуючи випадкове число на 5,ми отримуємо число в діапазоні від 0 до 5, не включаючи 5
+//Щоб отримати ціле число скористаємося функцією Math.floor:
+var randomLoc = Math.floor(Math.random() * 5);
+
 //три перемінні  позиції кожної клітини корабля.
-var location1=3
-var location2=4
-var location3=5
+var location1=randomLoc;
+var location2=location1 + 1;
+var location3=location2 + 1;
 
 //перемінна для вводу данних користувача. 
 
@@ -46,7 +50,3 @@ while (isSunk == false) {
     var stats = "You took " + guesses + " guesses to sink the battleship, " +
     "which means your shooting accuracy was " + (3/guesses);
     alert(stats);
-
-
-
-
