@@ -1,52 +1,107 @@
-//Помножуючи випадкове число на 5,ми отримуємо число в діапазоні від 0 до 5, не включаючи 5
-//Щоб отримати ціле число скористаємося функцією Math.floor:
-var randomLoc = Math.floor(Math.random() * 5);
-
-//три перемінні  позиції кожної клітини корабля.
-var location1=randomLoc;
-var location2=location1 + 1;
-var location3=location2 + 1;
-
-//перемінна для вводу данних користувача. 
-
-var guess;
-
-//перемінна для кількості влучень
-
-var hits = 0;
-
-// перемінна для кількості спроб
-
-var guesses = 0;
-
-// перемінна для зберігання інформації про те, потоплений корабель чи ні.
-
-var isSunk = false;
-
-//У цьому випадку ми перевіряємо, що перемінна isSunk все ще містить false. Як тільки корабель буде потоплений, вона стане true
-while (isSunk == false) {
-    //ми запитуємо у користувача координати пострілу
-    guess = prompt("Ready, aim, fire! (enter a number 0-6):");
-//переконаємось, що значення у діапазоні від 0 до 6.
-    if (guess < 0 || guess > 6) {
-        alert("Please enter a valid cell number!");
+// об'єкт подання
+var view = {
+// метод отримує рядкове повідомлення та виводить його у сфері повідомлень!
+displayMessage: function(msg) {
+    var messageArea = document.getElementById("messageArea");
+    messageArea.innerHTML = msg;
+},
+displayHit: function(location) {
+    var cell = document.getElementById(location);
+    cell.setAttribute("class", "hit");
+},
+displayMiss: function(location) {
+    var cell = document.getElementById(location);
+    cell.setAttribute("class", "miss");
+}
+// Закриваюча дужка view
+}
+// метод fire
+var model = {
+    boardSize: 7,
+    numShips: 3,
+    shipsSunk: 0,
+    shipLength: 3,
+    ships: [{ locations: ["06", "16", "26"], hits: ["", "", ""] },
+            { locations: ["24", "34", "44"], hits: ["", "", ""] },
+            { locations: ["10", "11", "12"], hits: ["", "", ""] }],
+// Метод отримує координати пострілу. 
+fire: function(guess) {
+// код перевірки влучень
+    for (var i = 0; i < this.numShips; i++) {
+        var ship = this.ships[i];
+// Отримуємо масив клітин, займаних кораблем    
+        var index = ship.locations.indexOf(guess);
+        if (index >= 0){
+            ship.hits[index] = "hit";
+            view.displayHit(guess);
+            view.displayMessage("HIT!");
+        if (this.isSunk(ship)){
+            view.displayMessage("You sank my battleship!");
+            this.shipsSunk++;
+        }
+        return true;
+        }
+    }
+    view.displayMiss(guess);
+    view.displayMessage("You missed.");
+    return false; 
+// Закриваюча дужка fire: function
+},
+isSunk: function(ship){
+    for (var i = 0; i < this.shipLength; i++){
+        if (ship.hits[i] !== "hit"){
+            return false;
+        }
+    }
+    return true;
+}
+// Закриваюча дужка   model         
+};
+// Отримуємо координати пострілу від гравця
+function parseGuess(guess){
+// беремо букву і перетворимо її на цифру
+var alphabet = ["A", "B", "C", "D", "E", "F", "G"];
+// Перевіряємо дані на null і переконуємося, що у рядку два символи
+    if (guess === null || guess.length !== 2){
+        alert("Oops, please enter a letter and a number on the board.");
+    } else{
+        firstChar = guess.charAt(0);
+        var row = alphabet.indexOf(firstChar);
+        var column = guess.charAt(1);
+        if (isNaN(row) || isNaN(column)){
+            alert("Oops, that isn't on the board.");
+        } else if(row < 0 || row >= model.boardSize || column < 0 || column >= model.boardSize){
+            alert("Oops, that's off the board!");
         } else {
-//кількість пострілів користувача
-        guesses = guesses + 1;
-        // якщо все вірно збільшити лічильник hits
-        if (guess == location1 || guess == location2 || guess == location3) {
-            alert("HIT!")
-            hits = hits + 1;
-//перевіряємо, що у корабель було зроблено три попадання
-            if (hits == 3) {
-                isSunk = true;
-                alert("You sank my battleship!");}
-                } else{
-                    alert("MISS");
-                }
-            }
-        }    
-    //інформація про кількість пострілів та точність
-    var stats = "You took " + guesses + " guesses to sink the battleship, " +
-    "which means your shooting accuracy was " + (3/guesses);
-    alert(stats);
+            return row + column;
+        }
+    }
+    return null;
+}
+// до реалізації контролера
+var controller ={
+    guesses: 0,
+    processGuess: function(guess){
+        var location = parseGuess(guess);
+        if (location){
+// Підрахунок та обробка пострілів
+        this.guesses++;
+        var hit = model.fire(location);
+        if (hit && model.shipsSunk === model.numShips){
+            view.displayMessage("You sank all my battleships, in " + this.guesses + " guesses");
+        }
+        }
+    }
+};
+// Отримання даних від гравця
+function init(){
+    var fireButton = document.getElementById("fireButton");
+    fireButton.onclick = handleFireButton;
+}
+function handleFireButton() {
+    var guessInput = document.getElementById("guessInput");
+    var guess = guessInput.value;
+    controller.processGuess(guess);
+    guessInput.value = "";
+   }
+   window.onload = init;
